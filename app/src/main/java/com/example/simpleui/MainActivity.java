@@ -3,6 +3,9 @@ package com.example.simpleui;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.net.Uri;
+import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -15,6 +18,7 @@ import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.Spinner;
@@ -24,6 +28,7 @@ import android.widget.Toast;
 import com.parse.FindCallback;
 import com.parse.Parse;
 import com.parse.ParseException;
+import com.parse.ParseFile;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.SaveCallback;
@@ -41,16 +46,21 @@ import java.util.Map;
 public class MainActivity extends AppCompatActivity {
 
     private static final int REQUEST_DRINK_MENU = 1;
+    private static final int REQUEST_TAKE_PHOTO = 2;
+
     private EditText inputText;
     private CheckBox hide;
     private ListView history;
     private Spinner storeInfo;
+    private ImageView imageView;
 
     private SharedPreferences sp;
     private SharedPreferences.Editor editor;
 
     private String drinkMenuResult;
     private List<ParseObject> orderResult;
+
+    private boolean hasPhoto = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -102,6 +112,8 @@ public class MainActivity extends AppCompatActivity {
         });
 
         storeInfo = (Spinner) findViewById(R.id.spinner);
+
+        imageView = (ImageView) findViewById(R.id.imageView);
 
         loadHistory();
         loadStoreInfo();
@@ -172,6 +184,12 @@ public class MainActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
         }
+        if (hasPhoto) {
+            ParseFile file = new ParseFile("photo.png",
+                    Utils.uriToBytes(this, Utils.getPhotoUri()));
+            object.put("photo", file);
+        }
+
         object.saveInBackground(saveCallback);
     }
 
@@ -191,6 +209,7 @@ public class MainActivity extends AppCompatActivity {
 
         inputText.setText("");
         drinkMenuResult = null;
+        hasPhoto = false;
     }
 
     private void goToOrderDetail(int position) {
@@ -221,6 +240,12 @@ public class MainActivity extends AppCompatActivity {
                 drinkMenuResult = data.getStringExtra("result");
                 Log.d("debug", drinkMenuResult);
             }
+        } else if (requestCode == REQUEST_TAKE_PHOTO) {
+            if (resultCode == RESULT_OK) {
+                Uri uri = Utils.getPhotoUri();
+                imageView.setImageURI(uri);
+                hasPhoto = true;
+            }
         }
     }
 
@@ -239,7 +264,11 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_take_photo) {
+            Intent intent = new Intent();
+            intent.setAction(MediaStore.ACTION_IMAGE_CAPTURE);
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, Utils.getPhotoUri());
+            startActivityForResult(intent, REQUEST_TAKE_PHOTO);
             return true;
         }
 
