@@ -3,6 +3,7 @@ package com.example.simpleui;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
@@ -10,7 +11,8 @@ import android.widget.TextView;
 public class OrderDetailActivity extends AppCompatActivity {
 
     private TextView textView;
-
+    /* geo point double array */
+    private double[] geoPoint;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -24,8 +26,32 @@ public class OrderDetailActivity extends AppCompatActivity {
         String menu = intent.getStringExtra("menu");
 
         textView.setText(note + "," + storeInfo + "," + menu);
-
+        /*call load geo point function*/
+        //接受DrinkMenuActivity丟過來的資料後
+        //去load google 的料
+        loadGeoPoint(storeInfo);
     }
+
+    /* declare load geo point function */
+    private void loadGeoPoint(String storeInfo){
+        //先得到可以查Google的資料
+        String geoQueryUrl = Utils.getGeoQueryUrl(storeInfo);
+        //查google
+
+        Utils.NetworkTask task = new Utils.NetworkTask();
+        task.setCallback(new Utils.NetworkTask.Callback(){
+            @Override
+            public void done(byte[] fetchResult) {
+                //等到做完之後。把經緯度拿出來
+                String jsonString = new String(fetchResult);
+                geoPoint = Utils.getGeoPoint(jsonString);
+                textView.setText("lat: " + geoPoint[0]
+                        + ", lng: " + geoPoint[1]);
+            }
+        });
+        task.execute(geoQueryUrl);
+    }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
