@@ -27,22 +27,16 @@ public class OrderDetailActivity extends AppCompatActivity {
 
         textView.setText(note + "," + storeInfo + "," + menu);
         /*call load geo point function*/
-        //接受DrinkMenuActivity丟過來的資料後
-        //去load google 的料
         loadGeoPoint(storeInfo);
     }
 
     /* declare load geo point function */
     private void loadGeoPoint(String storeInfo){
-        //先得到可以查Google的資料
         String geoQueryUrl = Utils.getGeoQueryUrl(storeInfo);
-        //查google
-
         Utils.NetworkTask task = new Utils.NetworkTask();
         task.setCallback(new Utils.NetworkTask.Callback(){
             @Override
             public void done(byte[] fetchResult) {
-                //等到做完之後。把經緯度拿出來
                 String jsonString = new String(fetchResult);
                 geoPoint = Utils.getGeoPoint(jsonString);
                 textView.setText("lat: " + geoPoint[0]

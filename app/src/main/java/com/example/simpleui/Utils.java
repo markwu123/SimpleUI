@@ -146,19 +146,17 @@ public class Utils {
 
     public static class NetworkTask extends AsyncTask<String, Void, byte[]> {
         private Callback callback;
-        //set call back
+
         public void  setCallback(Callback callback){
             this.callback = callback;
         }
         @Override
-        //背景去做撈google的資料
         protected byte[] doInBackground(String... params) {
             String url = params[0];
             return Utils.fetchToByte(url);
         }
 
         @Override
-        //做完之後打電話跟他說做完了
         protected void onPostExecute(byte[] fetchResult){
             callback.done(fetchResult);
         }
